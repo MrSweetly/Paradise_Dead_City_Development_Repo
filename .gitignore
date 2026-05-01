@@ -282,3 +282,10 @@ $RECYCLE.BIN/
 # git lfs track "*.max" "*.blend" "*.c4d"
 
 # Add .gitattributes file to manage LFS patterns
+Paradise_Dead_City_Unity_Project/Temp/UnityTempFile-263dd206e048979409a94e0254b4c858/package/ProjectData~/Library/
+
+Paradise_Dead_City_Unity_Project/Library/
+
+Paradise_Dead_City_Unity_Project/Temp/
+
+Paradise_Dead_City_Unity_Project/UserSettings/
