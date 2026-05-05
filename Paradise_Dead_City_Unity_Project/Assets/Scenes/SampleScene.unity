@@ -128,6 +128,26 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1365854189067950064, guid: 45cd0253eec03c84dbb3e9fb27e6957b, type: 3}
+      propertyPath: Drag_Offset
+      value: 4.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1365854189067950064, guid: 45cd0253eec03c84dbb3e9fb27e6957b, type: 3}
+      propertyPath: Player_1_Faction
+      value: 
+      objectReference: {fileID: 11400000, guid: a4a2d948182e5f8478f31cea887187b6, type: 2}
+    - target: {fileID: 1365854189067950064, guid: 45cd0253eec03c84dbb3e9fb27e6957b, type: 3}
+      propertyPath: Player_2_Faction
+      value: 
+      objectReference: {fileID: 11400000, guid: 63668a7c46c18774faa37a5ee738e004, type: 2}
+    - target: {fileID: 1365854189067950064, guid: 45cd0253eec03c84dbb3e9fb27e6957b, type: 3}
+      propertyPath: Drag_Detect_Radius
+      value: 1.7
+      objectReference: {fileID: 0}
+    - target: {fileID: 1365854189067950064, guid: 45cd0253eec03c84dbb3e9fb27e6957b, type: 3}
+      propertyPath: Altered_Drag_Offset
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 1365854189067950064, guid: 45cd0253eec03c84dbb3e9fb27e6957b, type: 3}
       propertyPath: Team_Tags.Array.size
       value: 2
       objectReference: {fileID: 0}

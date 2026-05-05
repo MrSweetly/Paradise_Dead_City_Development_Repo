@@ -19,4 +19,16 @@ public class Model_Standard_Behavior : MonoBehaviour
     // Smooth model transitioning
     private Vector3 Desired_Position;
     private Vector3 Desired_Scale;
+
+    private void Update()
+    {
+        transform.position = Vector3.Lerp(transform.position, Desired_Position, Time.deltaTime * 10f);
+    }
+
+    public virtual void Set_Position(Vector3 Position, bool Force =  false)
+    {
+        Desired_Position = Position;
+        if (Force)
+            transform.position = Desired_Position;
+    }
 }

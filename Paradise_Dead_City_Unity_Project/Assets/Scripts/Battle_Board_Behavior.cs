@@ -9,9 +9,14 @@ public class Battle_Board_Behavior : MonoBehaviour
     [SerializeField] private float Y_Offset = 0.2f;
     [SerializeField] private Vector3 Board_Center = Vector3.zero;
 
-    [Header("Prefabs and Tags")]
-    [SerializeField] private GameObject[] Prefabs;
-    [SerializeField] private Material[] Team_Materials;
+    [Header("Drag Settings")]
+    [SerializeField] private float Normal_Drag_Offset = 0.5f;
+    [SerializeField] private float Altered_Drag_Offset = 1.0f;
+    [SerializeField] private float Drag_Detect_Radius = 0.4f;
+
+    [Header("Factions")]
+    [SerializeField] private Faction_Data_SO Player_1_Faction;
+    [SerializeField] private Faction_Data_SO Player_2_Faction;
 
     // Board Logic
     private const int Tile_Count_X = 8;
@@ -23,6 +28,7 @@ public class Battle_Board_Behavior : MonoBehaviour
 
     // Models
     private Model_Standard_Behavior[,] Models;
+    private Model_Standard_Behavior Is_Dragging;
     private Material Player_1_Mat;
     private Material Player_2_Mat;
 
@@ -63,6 +69,54 @@ public class Battle_Board_Behavior : MonoBehaviour
                 Current_Mouse_Hover = Hit_Position;
                 Tiles[Current_Mouse_Hover.x, Hit_Position.y].layer = LayerMask.NameToLayer("Hover");
             }
+
+            // If we press donw on the mouse
+            if(Input.GetMouseButtonDown(0))
+            {
+                if (Models[Hit_Position.x, Hit_Position.y] != null)
+                {
+                    // Is it our turn?
+                    if (true)
+
+                    {
+                        Is_Dragging = Models[Hit_Position.x, Hit_Position.y];
+                    }
+                }
+            }
+
+            // If we release the mouse button
+            if (Is_Dragging != null && Input.GetMouseButtonUp(0))
+            {
+                Vector2Int Previous_Position = new Vector2Int(Is_Dragging.Current_X, Is_Dragging.Current_Y);
+
+                bool Valid_Move = Move_To(Is_Dragging, Hit_Position.x, Hit_Position.y); // Check if the move is valid based on game rules
+                if (!Valid_Move)
+                {
+                    Is_Dragging.Set_Position(Get_Tile_Center(Previous_Position.x, Previous_Position.y)); // Move back to previous position
+                    Is_Dragging = null;
+                }
+                else
+                {
+                    Is_Dragging = null;
+                }
+            }
+
+            // If we are dragging a model, update its position to follow the mouse
+            if (Is_Dragging)
+            {
+                Plane Horizontal_Plane = new Plane(Vector3.up, Vector3.up * Y_Offset);
+                float Distance = 0.0f;
+                if (Horizontal_Plane.Raycast(Ray, out Distance))
+                {
+                    Vector3 Mouse_Position = Ray.GetPoint(Distance);
+
+                    // Determine which offset to use based on enviroment
+                    float Current_Drag_Offset = Update_Drag_Offset(Mouse_Position);
+
+                    Is_Dragging.Set_Position(Mouse_Position + Vector3.up * Current_Drag_Offset);
+                }
+            }
+
         }
         else
         {
@@ -70,6 +124,12 @@ public class Battle_Board_Behavior : MonoBehaviour
             {
                 Tiles[Current_Mouse_Hover.x, Current_Mouse_Hover.y].layer = LayerMask.NameToLayer("Tile");
                 Current_Mouse_Hover = -Vector2Int.one;
+            }
+
+            if (Is_Dragging && Input.GetMouseButtonUp(0))
+            {
+                Is_Dragging.Set_Position(Get_Tile_Center(Is_Dragging.Current_X, Is_Dragging.Current_Y)); // Move back to previous position
+                Is_Dragging = null;
             }
         }
     }
@@ -118,41 +178,50 @@ public class Battle_Board_Behavior : MonoBehaviour
         return Tile_Object;
     }
 
-    // Spawn models
+    // SPAWN MODELS
     private void Spawn_All_Models()
     {
         Models = new Model_Standard_Behavior[Tile_Count_X, Tile_Count_Y];
 
         // Player 1
-        Models[0, 0] = Spawn_Single_Model(Model_Type.Specialist_A, Player_1_Mat);
-        Models[0, 1] = Spawn_Single_Model(Model_Type.Specialist_B, Player_1_Mat);
-        Models[0, 2] = Spawn_Single_Model(Model_Type.Specialist_A, Player_1_Mat);
-        Models[0, 3] = Spawn_Single_Model(Model_Type.Axillary, Player_1_Mat);
-        Models[0, 4] = Spawn_Single_Model(Model_Type.DeathHead, Player_1_Mat);
-        Models[0, 5] = Spawn_Single_Model(Model_Type.Specialist_A, Player_1_Mat);
-        Models[0, 6] = Spawn_Single_Model(Model_Type.Specialist_B, Player_1_Mat);
-        Models[0, 7] = Spawn_Single_Model(Model_Type.Specialist_A, Player_1_Mat);
+        Models[0, 0] = Spawn_Single_Model(Model_Type.Specialist_A, Player_1_Mat, Player_1_Faction, 1);
+        Models[0, 1] = Spawn_Single_Model(Model_Type.Specialist_B, Player_1_Mat, Player_1_Faction, 1);
+        Models[0, 2] = Spawn_Single_Model(Model_Type.Specialist_A, Player_1_Mat, Player_1_Faction, 1);
+        Models[0, 3] = Spawn_Single_Model(Model_Type.Axillary, Player_1_Mat, Player_1_Faction, 1);
+        Models[0, 4] = Spawn_Single_Model(Model_Type.DeathHead, Player_1_Mat, Player_1_Faction, 1);
+        Models[0, 5] = Spawn_Single_Model(Model_Type.Specialist_A, Player_1_Mat, Player_1_Faction, 1);
+        Models[0, 6] = Spawn_Single_Model(Model_Type.Specialist_B, Player_1_Mat, Player_1_Faction, 1);
+        Models[0, 7] = Spawn_Single_Model(Model_Type.Specialist_A, Player_1_Mat, Player_1_Faction, 1);
         for (int i = 0; i < Tile_Count_Y; i++)
-            Models[1, i] = Spawn_Single_Model(Model_Type.Chaff, Player_1_Mat);
+            Models[1, i] = Spawn_Single_Model(Model_Type.Chaff, Player_1_Mat, Player_1_Faction, 1);
 
         // Player 2
-        Models[7, 0] = Spawn_Single_Model(Model_Type.Specialist_A, Player_2_Mat);
-        Models[7, 1] = Spawn_Single_Model(Model_Type.Specialist_B, Player_2_Mat);
-        Models[7, 2] = Spawn_Single_Model(Model_Type.Specialist_A, Player_2_Mat);
-        Models[7, 3] = Spawn_Single_Model(Model_Type.Axillary, Player_2_Mat);
-        Models[7, 4] = Spawn_Single_Model(Model_Type.DeathHead, Player_2_Mat);
-        Models[7, 5] = Spawn_Single_Model(Model_Type.Specialist_A, Player_2_Mat);
-        Models[7, 6] = Spawn_Single_Model(Model_Type.Specialist_B, Player_2_Mat);
-        Models[7, 7] = Spawn_Single_Model(Model_Type.Specialist_A, Player_2_Mat);
+        Models[7, 0] = Spawn_Single_Model(Model_Type.Specialist_A, Player_2_Mat, Player_2_Faction, 2);
+        Models[7, 1] = Spawn_Single_Model(Model_Type.Specialist_B, Player_2_Mat, Player_2_Faction, 2);
+        Models[7, 2] = Spawn_Single_Model(Model_Type.Specialist_A, Player_2_Mat, Player_2_Faction, 2);
+        Models[7, 3] = Spawn_Single_Model(Model_Type.Axillary, Player_2_Mat, Player_2_Faction, 2);
+        Models[7, 4] = Spawn_Single_Model(Model_Type.DeathHead, Player_2_Mat, Player_2_Faction, 2);
+        Models[7, 5] = Spawn_Single_Model(Model_Type.Specialist_A, Player_2_Mat, Player_2_Faction, 2);
+        Models[7, 6] = Spawn_Single_Model(Model_Type.Specialist_B, Player_2_Mat, Player_2_Faction, 2);
+        Models[7, 7] = Spawn_Single_Model(Model_Type.Specialist_A, Player_2_Mat, Player_2_Faction, 2);
         for (int i = 0; i < Tile_Count_Y; i++)
-            Models[6, i] = Spawn_Single_Model(Model_Type.Chaff, Player_2_Mat);
+            Models[6, i] = Spawn_Single_Model(Model_Type.Chaff, Player_2_Mat, Player_2_Faction, 2);
     }
 
-    private Model_Standard_Behavior Spawn_Single_Model(Model_Type Type, Material Team_Mat)
+    private Model_Standard_Behavior Spawn_Single_Model(Model_Type Type, Material Team_Mat, Faction_Data_SO Faction, int Team_Number)
     {
-        Model_Standard_Behavior Model = Instantiate(Prefabs[(int)Type], transform).GetComponent<Model_Standard_Behavior>();
+        GameObject Prefab = Faction.Get_Prefab_By_Type(Type);
+
+        if(Prefab == null)
+        {
+            Debug.LogError($"Prefab for {Type} not found in faction {Faction.Faction_Name}");
+            return null;
+        }
+
+        Model_Standard_Behavior Model = Instantiate(Prefab, transform).GetComponent<Model_Standard_Behavior>();
 
         Model.Type = Type;
+        Model.Team = Team_Number;
 
         // Find renderer with materials
         Renderer[] Renderers = Model.GetComponentsInChildren<Renderer>();
@@ -165,11 +234,14 @@ public class Battle_Board_Behavior : MonoBehaviour
             // If there are at least 2 materials (base color + texture)
             if (Materials.Length >= 2)
             {
-                if (Materials[1] != null && Materials[1].name.Contains("Base"))
+                for (int i = 0; i < Materials.Length; i++)
                 {
-                    Materials[1] = new Material(Team_Mat);
-                    Renderer.materials = Materials;
-                    break;
+                    // Assign the team material to the first material slot
+                    if (Materials[i] != null && Materials[i].name.Contains("Base"))
+                    {
+                        Materials[i] = new Material(Team_Mat);
+                        Renderer.materials = Materials;
+                    }
                 }
                 
             }
@@ -185,23 +257,51 @@ public class Battle_Board_Behavior : MonoBehaviour
     // Model Colors
     private void Assign_Team_Colors()
     {
-        if (Team_Materials == null || Team_Materials.Length < 2)
+        if (Player_1_Faction == null || Player_2_Faction == null)
         {
-            Debug.LogError("Team materials not assigned or insufficient materials.");
+            Debug.LogError("Factions not assigned!");
             return;
         }
 
-        // Create list of avaliable materials
-        List<int> Available_Mats = new List<int>();
-        for (int i = 0; i < Team_Materials.Length; i++)
-            Available_Mats.Add(i);
+        // Get team materials from the factions
+        Material[] Player_1_Materials = Player_1_Faction.Team_Materials;
+        Material[] Player_2_Materials = Player_2_Faction.Team_Materials;
 
-        int Player_1_Mat_Index = Random.Range(0, Available_Mats.Count);
-        Player_1_Mat = Team_Materials[Available_Mats[Player_1_Mat_Index]];
-        Available_Mats.RemoveAt(Player_1_Mat_Index);
+        // Check if both players are using the same faction
+        bool Same_Faction = Player_1_Faction == Player_2_Faction;
 
-        int Player_2_Mat_Index = Random.Range(0, Available_Mats.Count);
-        Player_2_Mat = Team_Materials[Available_Mats[Player_2_Mat_Index]];
+        if (Same_Faction)
+        {
+            if (Player_1_Materials.Length < 2)
+            {
+                Player_1_Mat = Player_1_Materials[0];
+                Player_2_Mat = Player_2_Materials[0];
+                return;
+            }
+
+            // Create a list of available indices for the materials
+            List<int> Available_Indices = new List<int>();
+            for (int i = 0; i < Player_1_Materials.Length; i++)
+            {
+                Available_Indices.Add(i);
+            }
+
+            // Player 1 randomly selects a material
+            int Player_1_Index = Random.Range(0, Available_Indices.Count);
+            Player_1_Mat = Player_1_Materials[Available_Indices[Player_1_Index]];
+            Available_Indices.RemoveAt(Player_1_Index);
+
+            // Player 2 randomly selects a material from the remaining options
+            int Player_2_Index = Random.Range(0, Available_Indices.Count);
+            Player_2_Mat = Player_2_Materials[Available_Indices[Player_2_Index]];
+        }
+        else
+        {
+            // If factions are different, just assign the first material from each faction
+            Player_1_Mat = Player_1_Materials[0];
+            Player_2_Mat = Player_2_Materials[0];
+        }
+
     }
 
 
@@ -218,7 +318,7 @@ public class Battle_Board_Behavior : MonoBehaviour
     {
         Models[x, y].Current_X = x;
         Models[x, y].Current_Y = y;
-        Models[x, y].transform.position = Get_Tile_Center(x, y);
+        Models[x, y].Set_Position(Get_Tile_Center(x, y), Force);
     }
 
     private Vector3 Get_Tile_Center(int x, int y)
@@ -235,6 +335,40 @@ public class Battle_Board_Behavior : MonoBehaviour
                     return new Vector2Int(x, y);
 
         return -Vector2Int.one; // Invalid index if the tile is not found
+    }
+
+    private bool Move_To(Model_Standard_Behavior Model, int X, int Y)
+    {
+        Vector2Int Previous_Position = new Vector2Int(Model.Current_X, Model.Current_Y);
+
+        // Is there another peice in the way?
+        if (Models[X, Y] != null)
+        {
+            return false;
+        }
+
+        Models[X,Y] = Model;
+        Models[Previous_Position.x, Previous_Position.y] = null;
+
+        Position_Single_Model(X, Y);
+
+        return true; // For now, we assume all moves are valid. Implement game rules here.
+    }
+
+    private float Update_Drag_Offset(Vector3 Mouse_Position)
+    {
+        // Check if the mouse is over any other model
+        foreach (Model_Standard_Behavior Model in Models)
+        {
+            if (Model == null || Model == Is_Dragging)
+                continue;
+            float Distance = Vector3.Distance(Mouse_Position, Model.transform.position);
+            if (Distance < Drag_Detect_Radius)
+            {
+                return Altered_Drag_Offset; // Increase the drag offset to avoid overlapping
+            }
+        }
+        return Normal_Drag_Offset; // Default drag offset
     }
 
     // Debugging
