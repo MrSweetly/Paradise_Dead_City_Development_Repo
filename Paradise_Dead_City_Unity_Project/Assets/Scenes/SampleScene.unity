@@ -132,6 +132,14 @@ PrefabInstance:
       value: 4.3
       objectReference: {fileID: 0}
     - target: {fileID: 1365854189067950064, guid: 45cd0253eec03c84dbb3e9fb27e6957b, type: 3}
+      propertyPath: Flash_Speed
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1365854189067950064, guid: 45cd0253eec03c84dbb3e9fb27e6957b, type: 3}
+      propertyPath: Flash_Max_Alpha
+      value: 0.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 1365854189067950064, guid: 45cd0253eec03c84dbb3e9fb27e6957b, type: 3}
       propertyPath: Player_1_Faction
       value: 
       objectReference: {fileID: 11400000, guid: a4a2d948182e5f8478f31cea887187b6, type: 2}
@@ -160,6 +168,10 @@ PrefabInstance:
       value: Player_2
       objectReference: {fileID: 0}
     - target: {fileID: 1365854189067950064, guid: 45cd0253eec03c84dbb3e9fb27e6957b, type: 3}
+      propertyPath: Model_Placement_Material
+      value: 
+      objectReference: {fileID: 2100000, guid: 4fb800698383e5a4c93e5591dfccb19d, type: 2}
+    - target: {fileID: 1365854189067950064, guid: 45cd0253eec03c84dbb3e9fb27e6957b, type: 3}
       propertyPath: Team_Materials.Array.size
       value: 3
       objectReference: {fileID: 0}
@@ -175,6 +187,10 @@ PrefabInstance:
       propertyPath: 'Team_Materials.Array.data[2]'
       value: 
       objectReference: {fileID: 2100000, guid: ce312d103efef2642b44afad6b80d283, type: 2}
+    - target: {fileID: 1365854189067950064, guid: 45cd0253eec03c84dbb3e9fb27e6957b, type: 3}
+      propertyPath: Valid_Spawn_Tile_Locations_Material
+      value: 
+      objectReference: {fileID: 2100000, guid: 8e76fe92388c7c14f921513316c00bf6, type: 2}
     - target: {fileID: 6060389736486774675, guid: 45cd0253eec03c84dbb3e9fb27e6957b, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

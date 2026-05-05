@@ -22,3 +22,6 @@ MonoBehaviour:
   - {fileID: 2100000, guid: 0a744d186111b7546a9ff642af39961f, type: 2}
   - {fileID: 2100000, guid: a56ee067d20ee27418da370d58390887, type: 2}
   - {fileID: 2100000, guid: ce312d103efef2642b44afad6b80d283, type: 2}
+  Army_Composition: {fileID: 11400000, guid: 4c091bf673bf3ad4fb898c260fae9e24, type: 2}
+  Valid_Placement_Material: {fileID: 2100000, guid: 8e76fe92388c7c14f921513316c00bf6, type: 2}
+  Invalid_Placement_Material: {fileID: 2100000, guid: 4fb800698383e5a4c93e5591dfccb19d, type: 2}

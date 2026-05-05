@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "New Faction", menuName = "Model Sets/Faction Data")]
+[CreateAssetMenu(fileName = "New Faction", menuName = "Scriptable Objects/Faction Data")]
 public class Faction_Data_SO : ScriptableObject
 {
     public string Faction_Name;
@@ -15,7 +15,10 @@ public class Faction_Data_SO : ScriptableObject
     [Header("Model Materials")]
     public Material[] Team_Materials;
 
-    // Healper method to get the prefab based on the model type
+    [Header("Army Composition")]
+    public Army_Composition_SO Army_Composition;
+
+    // Helper method to get the prefab based on the model type
     public GameObject Get_Prefab_By_Type(Model_Type Type)
     {
         return Type switch

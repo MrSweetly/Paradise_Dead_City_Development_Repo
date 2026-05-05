@@ -18,7 +18,6 @@ public class Model_Standard_Behavior : MonoBehaviour
 
     // Smooth model transitioning
     private Vector3 Desired_Position;
-    private Vector3 Desired_Scale;
 
     private void Update()
     {
