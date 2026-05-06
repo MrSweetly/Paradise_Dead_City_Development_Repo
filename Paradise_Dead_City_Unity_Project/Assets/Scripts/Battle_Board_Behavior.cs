@@ -22,6 +22,7 @@ public class Battle_Board_Behavior : MonoBehaviour
     [SerializeField] private float Normal_Drag_Offset = 0.5f;
     [SerializeField] private float Altered_Drag_Offset = 1.0f;
     [SerializeField] private float Drag_Detect_Radius = 0.4f;
+    [SerializeField] private float Drag_Hold_Time = 0.2f;
 
     [Header("Factions")]
     [SerializeField] private Faction_Data_SO Player_1_Faction;
@@ -34,6 +35,7 @@ public class Battle_Board_Behavior : MonoBehaviour
     [Header("Highlight Materials")]
     [SerializeField] private Material Valid_Spawn_Tile_Locations_Material;
     [SerializeField] private Material Model_Placement_Material;
+    [SerializeField] private Material Movement_Range_Material;
     [SerializeField] private float Flash_Speed = 2.0f;
     [SerializeField] private float Flash_Min_Alpha = 0.3f;
     [SerializeField] private float Flash_Max_Alpha = 1.0f;
@@ -45,12 +47,19 @@ public class Battle_Board_Behavior : MonoBehaviour
     private Camera Main_Camera;
     private Vector2Int Current_Mouse_Hover;
     private Vector3 Bounds;
+    private Vector3 Board_Origin; // NEW: Stores the world position of tile (0,0)
 
     // Models
     private Model_Standard_Behavior[,] Models;
     private Model_Standard_Behavior Is_Dragging;
     private Material Player_1_Mat;
     private Material Player_2_Mat;
+
+    // Dragging Logic
+    private Model_Standard_Behavior Selected_Model;
+    private float Current_Hold_Time = 0f;
+    private bool Is_Holding = false;
+    private Vector2Int Hold_Start_Position;
 
     // Spawn System
     private GameObject Player_1_Spawn_Tile;
@@ -59,7 +68,9 @@ public class Battle_Board_Behavior : MonoBehaviour
     private Vector2Int Player_2_Spawn_Position;
     private List<Vector2Int> Spawn_Tile_Highlights = new List<Vector2Int>();
     private List<Vector2Int> Model_Placement_Highlights = new List<Vector2Int>();
+    private List<Vector2Int> Movement_Range_Highlights = new List<Vector2Int>();
     private Material Current_Flash_Material;
+    private Model_Standard_Behavior Current_Selected_Model;
 
     // Game State
     private Game_State Current_Phase = Game_State.Player_1_Place_Spawn;
@@ -97,7 +108,8 @@ public class Battle_Board_Behavior : MonoBehaviour
         Ray Ray = Main_Camera.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(Ray, out Info, 100, LayerMask.GetMask("Tile", "Hover")))
         {
-            Vector2Int Hit_Position = Look_Up_Tile_Index(Info.transform.gameObject);
+            // CHANGED: Use math-based tile detection instead of iterating through all tiles
+            Vector2Int Hit_Position = Get_Tile_From_World_Position(Info.point);
 
             // Handle hover effects
             Mouse_Hover_Effects(Hit_Position);
@@ -143,6 +155,22 @@ public class Battle_Board_Behavior : MonoBehaviour
 
         // Apply flashing effect every frame
         Flash_Highlighted_Tiles();
+    }
+
+    private Vector2Int Get_Tile_From_World_Position(Vector3 World_Position)
+    {
+        // Convert world position to position relative to the board origin (bottom-left of tile 0,0)
+        Vector3 Relative_Pos = World_Position - Board_Origin;
+
+        // Divide by tile size to get the tile index
+        int X = Mathf.FloorToInt(Relative_Pos.x / Tile_Size);
+        int Y = Mathf.FloorToInt(Relative_Pos.z / Tile_Size);
+
+        // Clamp to board bounds
+        X = Mathf.Clamp(X, 0, Tile_Count_X - 1);
+        Y = Mathf.Clamp(Y, 0, Tile_Count_Y - 1);
+
+        return new Vector2Int(X, Y);
     }
 
     // Hover Effects
@@ -247,23 +275,25 @@ public class Battle_Board_Behavior : MonoBehaviour
 
         Current_Flash_Material = Model_Placement_Material;
 
-        int Start_X = Spawn_Position.x;
-        if (Player==1)
+        int Start_X;
+        int Start_Y;
+
+        if (Player == 1)
         {
-            // Player 1 (rows 0-1): spawn zone goes backward toward row 0
-            // If spawn on row 1, start at row 0
-            // If spawn on row 0, stay at row 0
             Start_X = Mathf.Max(0, Spawn_Position.x - (Spawn_Zone_Depth - 1));
         }
         else
         {
-            // Player 2 (rows 6-7): spawn zone goes backward toward row 6
-            // If spawn on row 7, start at row 6
-            // If spawn on row 6, stay at row 6
             Start_X = Mathf.Max(6, Spawn_Position.x - (Spawn_Zone_Depth - 1));
-        }    
+        }
 
-        int Start_Y = Mathf.Max(0, Spawn_Position.y - 2);
+        int Half_Width = Spawn_Zone_Width / 2;
+        Start_Y = Spawn_Position.y - Half_Width;
+
+        if (Start_Y < 0)
+            Start_Y = 0;
+        if (Start_Y + Spawn_Zone_Width > Tile_Count_Y)
+            Start_Y = Tile_Count_Y - Spawn_Zone_Width;
 
         for (int X = Start_X; X < Start_X + Spawn_Zone_Depth && X < Tile_Count_X; X++)
         {
@@ -315,38 +345,31 @@ public class Battle_Board_Behavior : MonoBehaviour
         float Alpha = Mathf.Lerp(Flash_Min_Alpha, Flash_Max_Alpha,
             (Mathf.Sin(Time.time * Flash_Speed) + 1.0f) * 0.5f);
 
-        // Apply to spawn tile highlights if in spawn placement phase
+        // Handle different highlight types based on current game phase
         if (Current_Phase == Game_State.Player_1_Place_Spawn || Current_Phase == Game_State.Player_2_Place_Spawn)
         {
-            if (Spawn_Tile_Highlights.Count > 0)
-            {
-                foreach (Vector2Int Tile in Spawn_Tile_Highlights)
-                {
-                    Renderer Renderer = Tiles[Tile.x, Tile.y].GetComponent<MeshRenderer>();
-                    if (Renderer != null && Renderer.material != null)
-                    {
-                        Color Color = Renderer.material.color;
-                        Color.a = Alpha;
-                        Renderer.material.color = Color;
-                    }
-                }
-            }
+            Flash_Highlight_Group(Spawn_Tile_Highlights, Alpha);
         }
-        // Apply to model highlights if in model placement phase
         else if (Current_Phase == Game_State.Player_1_Place_Models || Current_Phase == Game_State.Player_2_Place_Models)
         {
-            if (Model_Placement_Highlights.Count > 0)
+            Flash_Highlight_Group(Model_Placement_Highlights, Alpha);
+        }
+        else if (Current_Phase == Game_State.Gameplay && Movement_Range_Highlights.Count > 0)
+        {
+            Flash_Highlight_Group(Movement_Range_Highlights, Alpha);
+        }
+    }
+
+    private void Flash_Highlight_Group(List<Vector2Int> Highlight_Group, float Alpha)
+    {
+        foreach (Vector2Int Tile in Highlight_Group)
+        {
+            Renderer Renderer = Tiles[Tile.x, Tile.y].GetComponent<MeshRenderer>();
+            if (Renderer != null && Renderer.material != null)
             {
-                foreach (Vector2Int Tile in Model_Placement_Highlights)
-                {
-                    Renderer Renderer = Tiles[Tile.x, Tile.y].GetComponent<MeshRenderer>();
-                    if (Renderer != null && Renderer.material != null)
-                    {
-                        Color Color = Renderer.material.color;
-                        Color.a = Alpha;
-                        Renderer.material.color = Color;
-                    }
-                }
+                Color Color = Renderer.material.color;
+                Color.a = Alpha;
+                Renderer.material.color = Color;
             }
         }
     }
@@ -354,27 +377,23 @@ public class Battle_Board_Behavior : MonoBehaviour
     // Model Placement
     private void Spawn_Model(Vector2Int Hit_Position, int Player, Army_Composition_SO Army, Material Team_Mat)
     {
-        // Check if the clicked tile is in the highlighted zone
         if (!Model_Placement_Highlights.Contains(Hit_Position))
             return;
 
         if (Input.GetMouseButtonDown(0))
         {
-            // Check if tile is already occupied
             if (Models[Hit_Position.x, Hit_Position.y] != null)
             {
                 Debug.Log("Tile already occupied!");
                 return;
             }
 
-            // Check if army has models left
             if (Army == null || !Army.Has_Models_Left())
             {
                 Debug.Log($"No more models to place for Player {Player}!");
                 return;
             }
 
-            // Place a random model from the army composition
             Model_Type Random_Type = Army.Get_Random_Model_Type();
             Model_Standard_Behavior Model = Spawn_Single_Model(Random_Type, Team_Mat,
                 Player == 1 ? Player_1_Faction : Player_2_Faction, Player);
@@ -386,12 +405,10 @@ public class Battle_Board_Behavior : MonoBehaviour
 
                 Debug.Log($"Player {Player} placed {Random_Type}. Remaining: {Army.Get_Remaining_Count()} models");
 
-                // Check if this was the last model
                 if (!Army.Has_Models_Left())
                 {
                     Debug.Log($"Player {Player} has no more models to place!");
 
-                    // Move to next phase immediately
                     if (Player == 1)
                     {
                         Current_Phase = Game_State.Player_2_Place_Spawn;
@@ -413,37 +430,129 @@ public class Battle_Board_Behavior : MonoBehaviour
     // Gameplay
     private void Mouse_Control(Vector2Int Hit_Position, Ray Ray)
     {
-        // If we press down on the mouse
+        // LEFT CLICK - Select/Deselect or Start Drag
         if (Input.GetMouseButtonDown(0))
         {
+            // If clicking on a model
             if (Models[Hit_Position.x, Hit_Position.y] != null)
             {
-                // Is it our turn?
-                if (true)
+                Model_Standard_Behavior Clicked_Model = Models[Hit_Position.x, Hit_Position.y];
+
+                // If clicking the already selected model, start hold-to-drag instead of deselecting
+                if (Clicked_Model == Selected_Model)
                 {
-                    Is_Dragging = Models[Hit_Position.x, Hit_Position.y];
+                    // Don't deselect - just start the hold timer for dragging
+                    Is_Holding = true;
+                    Current_Hold_Time = 0f;
+                    Hold_Start_Position = Hit_Position;
+                    Debug.Log($"Clicked selected model again. Hold to drag.");
+                    return; // Exit early, don't reselect
+                }
+
+                // Deselect previous model before selecting new one
+                if (Selected_Model != null)
+                {
+                    Clear_Movement_Range_Flash();
+                    Is_Dragging = null;
+                }
+
+                // Select new model (but don't start dragging yet)
+                Selected_Model = Clicked_Model;
+                Show_Movement_Range(Clicked_Model);
+
+                // Start tracking hold time
+                Is_Holding = true;
+                Current_Hold_Time = 0f;
+                Hold_Start_Position = Hit_Position;
+
+                Debug.Log($"Selected {Clicked_Model.Type} at ({Clicked_Model.Current_X}, {Clicked_Model.Current_Y}). Hold to drag.");
+            }
+            // If clicking on an empty tile, deselect current model
+            else
+            {
+                if (Selected_Model != null)
+                {
+                    Deselect_Model();
                 }
             }
         }
 
-        // If we release the mouse button
-        if (Is_Dragging != null && Input.GetMouseButtonUp(0))
+        // Track holding left mouse button
+        if (Input.GetMouseButton(0) && Is_Holding && Selected_Model != null)
         {
-            Vector2Int Previous_Position = new Vector2Int(Is_Dragging.Current_X, Is_Dragging.Current_Y);
+            Current_Hold_Time += Time.deltaTime;
 
-            bool Valid_Move = Move_To(Is_Dragging, Hit_Position.x, Hit_Position.y);
-            if (!Valid_Move)
+            // Check if we've held long enough and haven't started dragging yet
+            if (Current_Hold_Time >= Drag_Hold_Time && Is_Dragging == null)
             {
-                Is_Dragging.Set_Position(Get_Tile_Center(Previous_Position.x, Previous_Position.y));
-                Is_Dragging = null;
-            }
-            else
-            {
-                Is_Dragging = null;
+                // Start dragging the model
+                Is_Dragging = Selected_Model;
+                Debug.Log("Now dragging model!");
             }
         }
 
-        // If we are dragging a model, update its position to follow the mouse
+        // RIGHT CLICK - Quick Deselect
+        if (Input.GetMouseButtonDown(1))
+        {
+            if (Selected_Model != null)
+            {
+                Deselect_Model();
+            }
+            return; // Prevent further processing on right-click
+        }
+
+        // LEFT MOUSE BUTTON UP - Complete move or cancel hold
+        if (Input.GetMouseButtonUp(0))
+        {
+            // If we were holding but never started dragging (quick click)
+            if (Is_Holding && Is_Dragging == null)
+            {
+                // This was just a click, not a drag - keep the model selected
+                Debug.Log("Quick click - model remains selected");
+            }
+
+            // If we were dragging, complete the move
+            if (Is_Dragging != null)
+            {
+                Vector2Int Previous_Position = new Vector2Int(Is_Dragging.Current_X, Is_Dragging.Current_Y);
+
+                bool Valid_Move = Move_To(Is_Dragging, Hit_Position.x, Hit_Position.y);
+                if (!Valid_Move)
+                {
+                    // Invalid move - snap back to original position
+                    Is_Dragging.Set_Position(Get_Tile_Center(Previous_Position.x, Previous_Position.y));
+                    Debug.Log("Invalid move - snapping back");
+
+                    // Keep model selected after failed move
+                    Is_Holding = false;
+                    Current_Hold_Time = 0f;
+                    Is_Dragging = null;
+                    // Don't deselect - let the player try again
+                }
+                else
+                {
+                    // SUCCESSFUL MOVE
+                    Debug.Log($"Model moved from {Previous_Position} to {Hit_Position}");
+
+                    // Keep the model selected and show new movement range
+                    Show_Movement_Range(Is_Dragging); // Show movement range from new position
+
+                    Is_Dragging = null;
+                    Is_Holding = false;
+                    Current_Hold_Time = 0f;
+                    // Selected_Model stays the same - model remains selected
+                }
+            }
+
+            // Reset hold tracking (only if not dragging or after handling drag)
+            if (Is_Dragging == null)
+            {
+                Is_Holding = false;
+                Current_Hold_Time = 0f;
+            }
+        }
+
+        // While dragging, update position
         if (Is_Dragging)
         {
             Plane Horizontal_Plane = new Plane(Vector3.up, Vector3.up * Y_Offset);
@@ -451,12 +560,30 @@ public class Battle_Board_Behavior : MonoBehaviour
             if (Horizontal_Plane.Raycast(Ray, out Distance))
             {
                 Vector3 Mouse_Position = Ray.GetPoint(Distance);
-
                 float Current_Drag_Offset = Update_Drag_Offset(Mouse_Position);
-
                 Is_Dragging.Set_Position(Mouse_Position + Vector3.up * Current_Drag_Offset);
             }
         }
+    }
+
+    // Updated Deselect_Model method
+    private void Deselect_Model()
+    {
+        if (Selected_Model != null)
+        {
+            // Snap the model back to its original position if it was being dragged
+            if (Is_Dragging != null)
+            {
+                Is_Dragging.Set_Position(Get_Tile_Center(Is_Dragging.Current_X, Is_Dragging.Current_Y));
+            }
+        }
+
+        Clear_Movement_Range_Flash();
+        Selected_Model = null;
+        Is_Dragging = null;
+        Is_Holding = false;
+        Current_Hold_Time = 0f;
+        Debug.Log("Model deselected");
     }
 
     // GENERATE BATTLE BOARD
@@ -465,10 +592,36 @@ public class Battle_Board_Behavior : MonoBehaviour
         Y_Offset += transform.position.y;
         Bounds = new Vector3((Tile_Count_X / 2.0f) * Tile_Size, 0, (Tile_Count_X / 2.0f) * Tile_Size) + Board_Center;
 
+        // Store the world position of the bottom-left corner of tile (0,0)
+        // This is the position of the first vertex of tile (0,0)
+        Board_Origin = new Vector3(0, Y_Offset, 0) - Bounds;
+
+        // Create individual tile meshes (no colliders)
         Tiles = new GameObject[Tile_Count_X, Tile_Count_Y];
         for (int x = 0; x < Tile_Count_X; x++)
             for (int y = 0; y < Tile_Count_Y; y++)
                 Tiles[x, y] = Generate_Single_Tiles(Tile_Size, x, y);
+
+        Create_Board_Collider();
+    }
+
+    private void Create_Board_Collider()
+    {
+        GameObject Collider_Object = new GameObject("Board_Collider");
+        Collider_Object.transform.parent = transform;
+        Collider_Object.layer = LayerMask.NameToLayer("Tile");
+
+        BoxCollider Board_Collider = Collider_Object.AddComponent<BoxCollider>();
+
+        // Calculate the center of the entire board in world space
+        Vector3 Board_Center_World = Get_Tile_Center(3, 3);
+
+        // Size covers all tiles plus some margin
+        float Width = Tile_Count_X * Tile_Size;
+        float Depth = Tile_Count_Y * Tile_Size;
+
+        Board_Collider.center = new Vector3(0, Y_Offset, 0) - Bounds + new Vector3(Width / 2f, 0, Depth / 2f);
+        Board_Collider.size = new Vector3(Width, 0.01f, Depth);
     }
 
     private GameObject Generate_Single_Tiles(float Tile_Size, int x, int y)
@@ -490,11 +643,10 @@ public class Battle_Board_Behavior : MonoBehaviour
 
         Mesh.vertices = Verticies;
         Mesh.triangles = Tris;
-
         Mesh.RecalculateNormals();
 
         Tile_Object.layer = LayerMask.NameToLayer("Tile");
-        Tile_Object.AddComponent<BoxCollider>();
+        // REMOVED: Tile_Object.AddComponent<BoxCollider>();
 
         return Tile_Object;
     }
@@ -515,7 +667,13 @@ public class Battle_Board_Behavior : MonoBehaviour
         Model.Type = Type;
         Model.Team = Team_Number;
 
-        // Find renderer with materials
+        // Assign stats
+        Model.Stats = Faction.Get_Stats_By_Type(Type);
+        if (Model.Stats != null)
+        {
+            Model.Current_Health = Model.Stats.Health;
+        }
+
         Renderer[] Renderers = Model.GetComponentsInChildren<Renderer>();
 
         foreach (Renderer Renderer in Renderers)
@@ -598,24 +756,85 @@ public class Battle_Board_Behavior : MonoBehaviour
         return new Vector3(x * Tile_Size, Y_Offset, y * Tile_Size) - Bounds + new Vector3(Tile_Size / 2, 0, Tile_Size / 2);
     }
 
-    // Operations
-    private Vector2Int Look_Up_Tile_Index(GameObject Hit_Info)
+    private void Show_Movement_Range(Model_Standard_Behavior Model)
     {
-        for (int x = 0; x < Tile_Count_X; x++)
-            for (int y = 0; y < Tile_Count_Y; y++)
-                if (Tiles[x, y] == Hit_Info)
-                    return new Vector2Int(x, y);
+        Clear_Movement_Range_Flash();
 
-        return -Vector2Int.one;
+        if (Model.Stats == null)
+            return;
+        
+        int Movement_Range = Model.Stats.Movement_Range;
+        int Start_X = Model.Current_X;
+        int Start_Y = Model.Current_Y;
+
+        for (int X = 0; X < Tile_Count_X; X++)
+        {
+            for (int Y = 0; Y < Tile_Count_Y; Y++)
+            {
+                int Distance = Mathf.Abs(X - Start_X) + Mathf.Abs(Y - Start_Y);
+
+                if (Distance <= Movement_Range && Distance > 0)
+                {
+                    Movement_Range_Highlights.Add(new Vector2Int(X, Y));
+
+                    if (Movement_Range_Material != null)
+                        Tiles[X, Y].GetComponent<MeshRenderer>().material = Movement_Range_Material;
+                }
+            }
+        }
+
+        if (Movement_Range_Highlights.Count > 0)
+        {
+            Current_Flash_Material = Movement_Range_Material;
+        }
+
     }
 
+    private void Clear_Movement_Range_Flash()
+    {
+        foreach (Vector2Int Tile in Movement_Range_Highlights)
+        {
+            Tiles[Tile.x, Tile.y].GetComponent<MeshRenderer>().material = Tile_Material;
+        }
+        Movement_Range_Highlights.Clear();
+        Current_Flash_Material = null;
+    }
+
+    // Operations
     private bool Move_To(Model_Standard_Behavior Model, int X, int Y)
     {
         Vector2Int Previous_Position = new Vector2Int(Model.Current_X, Model.Current_Y);
 
+        // Check if model can move (respects turn-based movement)
+        if (Model.Has_Moved_This_Turn)
+        {
+            Debug.Log($"{Model.Type} has already moved this turn!");
+            return false;
+        }
+
+        // Is tile occupied?
         if (Models[X, Y] != null)
         {
+            // Check if it's an enemy (future: implement attack logic)
+            if (Models[X, Y].Team != Model.Team)
+            {
+                Debug.Log("Cannot move onto enemy tile!");
+            }
+            else
+            {
+                Debug.Log("Tile occupied by friendly model!");
+            }
             return false;
+        }
+
+        // Is within movement range?
+        if (Model.Stats != null)
+        {
+            if (!Model.Can_Move_To(X, Y))
+            {
+                Debug.Log($"Target is outside movement range of {Model.Stats.Movement_Range}!");
+                return false;
+            }
         }
 
         Models[X, Y] = Model;

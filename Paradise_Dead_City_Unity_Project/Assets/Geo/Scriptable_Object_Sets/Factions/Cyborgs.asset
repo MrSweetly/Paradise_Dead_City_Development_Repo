@@ -18,10 +18,13 @@ MonoBehaviour:
   Specialist_B_Prefab: {fileID: 6757199961033575750, guid: 32506fb27fbc8664389c92a12cb3cef0, type: 3}
   Axillary_Prefab: {fileID: 2297455885216925539, guid: 558bda2ac00a93644bcbc76d04f6769f, type: 3}
   Death_Head_Prefab: {fileID: 8882147280425198954, guid: 6d4b78bf9f2684644b6878022c6b75b2, type: 3}
+  Chaff_Stats: {fileID: 11400000, guid: 1c9c175f982acca49b18497cc1d74067, type: 2}
+  Specialist_A_Stats: {fileID: 11400000, guid: f9b443e32ca770c4593e6cbe2ff35ef1, type: 2}
+  Specialist_B_Stats: {fileID: 11400000, guid: b64da35f6763e4c42ba2ddf444a00a37, type: 2}
+  Axillary_Stats: {fileID: 11400000, guid: 66642c0e72954e449b84b3bf89930501, type: 2}
+  Death_Head_Stats: {fileID: 11400000, guid: e41970bfdfeb7804ca8ed8353a67760a, type: 2}
   Team_Materials:
   - {fileID: 2100000, guid: 8088ea88a48e56b42bfa3c9b3391baed, type: 2}
   - {fileID: 2100000, guid: ec3ba1095a469b645a9d50b087209e65, type: 2}
   - {fileID: 2100000, guid: 7057e2516e46d5d499a59ceacb98b89f, type: 2}
   Army_Composition: {fileID: 11400000, guid: ae2f7e0eaaf0cd5489bd5efa6257055d, type: 2}
-  Valid_Placement_Material: {fileID: 2100000, guid: 8e76fe92388c7c14f921513316c00bf6, type: 2}
-  Invalid_Placement_Material: {fileID: 2100000, guid: 4fb800698383e5a4c93e5591dfccb19d, type: 2}

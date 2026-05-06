@@ -139,13 +139,20 @@ MonoBehaviour:
   Tile_Size: 2.4339
   Y_Offset: 0.51
   Board_Center: {x: 0, y: 0, z: 0}
-  Prefabs:
-  - {fileID: 7068030445672354757, guid: 88748f6524fece44b8aa2ae02b1ac366, type: 3}
-  - {fileID: 7068030445672354757, guid: a8c1092c5c019c245aaf8e2fd6b75be4, type: 3}
-  - {fileID: 8300115262041543763, guid: deb5d33fa0b5c4d408c899fcd1a58070, type: 3}
-  - {fileID: 1180506226535730315, guid: 22cf315fa4974c04eaae5f24a61a6125, type: 3}
-  - {fileID: 8882147280425198954, guid: bbc63d1f3add7e345ad4aa871570b07b, type: 3}
-  Team_Materials: []
+  Normal_Drag_Offset: 0.5
+  Altered_Drag_Offset: 4
+  Drag_Detect_Radius: 2
+  Drag_Hold_Time: 0.1
+  Player_1_Faction: {fileID: 11400000, guid: 63668a7c46c18774faa37a5ee738e004, type: 2}
+  Player_2_Faction: {fileID: 11400000, guid: a4a2d948182e5f8478f31cea887187b6, type: 2}
+  Spawn_Zone_Width: 5
+  Spawn_Zone_Depth: 2
+  Valid_Spawn_Tile_Locations_Material: {fileID: 2100000, guid: 8e76fe92388c7c14f921513316c00bf6, type: 2}
+  Model_Placement_Material: {fileID: 2100000, guid: 4fb800698383e5a4c93e5591dfccb19d, type: 2}
+  Movement_Range_Material: {fileID: 2100000, guid: b483d9de372e65247ba333d1389eab84, type: 2}
+  Flash_Speed: 3
+  Flash_Min_Alpha: 0.3
+  Flash_Max_Alpha: 0.7
 --- !u!1 &8267950992274266666
 GameObject:
   m_ObjectHideFlags: 0
