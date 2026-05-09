@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c84f65ce1f26f9d41b3565fda15b0e6d, type: 3}
-  m_Name: Demon_Specialist_B
+  m_Name: Demon_Specialist_A
   m_EditorClassIdentifier: Assembly-CSharp::Model_Stats_SO
-  Model_Name: Jackal Marauder
-  Type: 0
+  Model_Name: Ninja Headhunter
+  Type: 1
   Health: 4
   Attack_Damage: 2
   Attack_Ranged: 1

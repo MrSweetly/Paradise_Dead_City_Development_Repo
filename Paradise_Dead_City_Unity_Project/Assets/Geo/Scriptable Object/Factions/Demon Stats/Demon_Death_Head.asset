@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c84f65ce1f26f9d41b3565fda15b0e6d, type: 3}
-  m_Name: Demon_Specialist_A
+  m_Name: Demon_Death_Head
   m_EditorClassIdentifier: Assembly-CSharp::Model_Stats_SO
-  Model_Name: Ninja Headhunter
-  Type: 0
-  Health: 4
-  Attack_Damage: 2
+  Model_Name: Helldog Shinobi
+  Type: 4
+  Health: 8
+  Attack_Damage: 6
   Attack_Ranged: 1
   Attack_Chance: 0.75
   Movement_Range: 3

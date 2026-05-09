@@ -1,0 +1,115 @@
+{
+    "version": 1,
+    "name": "Battle_Board_Controls",
+    "maps": [
+        {
+            "name": "Battle_Board",
+            "id": "f50470c2-2e45-4069-852b-43ed203eb667",
+            "actions": [
+                {
+                    "name": "Left_Click",
+                    "type": "Button",
+                    "id": "cbcc6911-b55a-4ddd-bc3e-ceb6cb318957",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Right_Click",
+                    "type": "Button",
+                    "id": "37e422e8-5d51-4317-af81-b34efcf072c4",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Mouse_Position",
+                    "type": "Value",
+                    "id": "94098ac5-0adf-49d7-8be9-f10a27e92c38",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Hold",
+                    "type": "Button",
+                    "id": "a383cb6e-f14e-4cf1-b24c-5c5c447a2c36",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Space_Bar",
+                    "type": "Button",
+                    "id": "bd54e0d1-aed6-4026-ad3c-deacd88e89a3",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "d48153a1-e839-46a0-9e3f-989e60823dc2",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Left_Click",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8ac1630b-ea49-4b81-a415-1ee924467b51",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Right_Click",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "2178bc10-4843-49f5-b0d9-b9789870ca17",
+                    "path": "<Mouse>/position",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Mouse_Position",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "2c58cd76-4712-43df-90bb-5eacf52efdf8",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "Hold",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hold",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "631a5738-5bc9-460d-956f-7d5cc36881f0",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Space_Bar",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
