@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: -5397893907699944860}
   - component: {fileID: 204607129815525623}
   - component: {fileID: 2542476548791762741}
+  - component: {fileID: -9186604486064290384}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -56,6 +57,7 @@ MonoBehaviour:
   NetworkedBehaviours:
   - {fileID: 204607129815525623}
   - {fileID: 2542476548791762741}
+  - {fileID: -9186604486064290384}
   ForceRemoteRenderTimeframe: 0
 --- !u!143 &-5397893907699944860
 CharacterController:
@@ -135,6 +137,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerControls
   playerCamera: {fileID: 5269538081419037920}
+  localShape: {fileID: 0}
+  _playerIndex: 0
+--- !u!114 &-9186604486064290384
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1751306471601287261}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 10771acf0b42baf4ea517f25b9526346, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInput
 --- !u!1 &3327422356463275207
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,5 +1,8 @@
 using UnityEngine;
 using Fusion;
+using Fusion.Sockets;
+using System;
+using System.Collections.Generic;
 
 public class PlayerControls : NetworkBehaviour
 {
@@ -23,19 +26,6 @@ public class PlayerControls : NetworkBehaviour
                 if (audioListener != null)
                     audioListener.enabled = true;
             }
-
-            if (localShape == null)
-            {
-                if (Runner.LocalPlayer.RawEncoded - 1 == 1)
-                    localShape = GameObject.Find("Cube");
-                else if (Runner.LocalPlayer.RawEncoded - 1 == 2)
-                    localShape = GameObject.Find("Sphere");
-            }
-
-            if (localShape != null)
-            {
-                netMecAnim = localShape.GetComponent<NetworkMecanimAnimator>();
-            }
         }
         else
         {
@@ -48,6 +38,22 @@ public class PlayerControls : NetworkBehaviour
                     audioListener.enabled = false;
             }
         }
+
+        if (localShape == null)
+        {
+            if (Runner.LocalPlayer.RawEncoded - 1 == 1)
+                localShape = GameObject.Find("Cube");
+            else if (Runner.LocalPlayer.RawEncoded - 1 == 2)
+                localShape = GameObject.Find("Sphere");
+        }
+        if (localShape != null)
+        {
+            netMecAnim = localShape.GetComponent<NetworkMecanimAnimator>();
+        }
+        Debug.Log($"Input Authority: {Object.InputAuthority}");
+        Debug.Log($"Has Input Authority: {HasInputAuthority}");
+        Debug.Log($"State Authority: {Object.StateAuthority}");
+        Debug.Log($"Has State Authority: {HasStateAuthority}");
     }
 
     public override void FixedUpdateNetwork()
@@ -55,7 +61,7 @@ public class PlayerControls : NetworkBehaviour
         if (!HasStateAuthority)
             return;
 
-        if (GetInput(out NetworkInputData input))
+        if (GetInput(out GameplayInput input))
         {
             if (input.shift)
             {
@@ -63,10 +69,5 @@ public class PlayerControls : NetworkBehaviour
                 netMecAnim.Animator.SetTrigger("Shift");
             }
         }
-    }
-
-    public struct NetworkInputData : INetworkInput
-    {
-        public bool shift;
     }
 }

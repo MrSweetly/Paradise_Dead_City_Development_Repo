@@ -14,12 +14,12 @@ public class PlayerSpawner : SimulationBehaviour, IPlayerJoined
             NetworkObject spawnedPlayer = null;
             if (player.RawEncoded - 1 == 1)
             {
-                spawnedPlayer = Runner.Spawn(PlayerPrefab, new Vector3(0, 30, -65), Quaternion.identity);
+                spawnedPlayer = Runner.Spawn(PlayerPrefab, new Vector3(0, 30, -65), Quaternion.identity, player);
                 spawnedPlayer.GetComponent<PlayerControls>().localShape = playerOneShape;
             }
             else if (player.RawEncoded - 1 == 2)
             {
-                spawnedPlayer = Runner.Spawn(PlayerPrefab, new Vector3(0, 30, 65), Quaternion.Euler(0, 180, 0));
+                spawnedPlayer = Runner.Spawn(PlayerPrefab, new Vector3(0, 30, 65), Quaternion.Euler(0, 180, 0), player);
                 spawnedPlayer.GetComponent<PlayerControls>().localShape = playerTwoShape;
             }
         }
